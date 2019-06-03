@@ -3,7 +3,7 @@
 Var integer n;
 Char nome[40];
 Const MAXITER=0;
-
+inte
 /* Programa Principal */
 
   write("Digite seu nome: ");
