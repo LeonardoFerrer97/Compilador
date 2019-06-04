@@ -589,17 +589,20 @@ public class Parse {
             System.out.println(lexico.linha+": Tipos incompativeis.12");
             System.exit(0);
          }
-         
+         c.codigo.add("mov ax, DS: ["+endereco_ExpS+"] ");
+         c.codigo.add("mov bx, DS: ["+endereco_T"] ");
          switch (operacao) {
-            case 1: 
+            case 1:
+                c.codigo.add("or ax, bx");
                break;
             case 2: 
-               
+               c.codigo.add("sub ax,bx");
                break;
             case 3: 
-              
+              c.codigo.add("add ax,bx");
                break;
          }
+         c.codigo.add("mov DS: ["+ endereco_ExpS+"]",ax);
          
       
       }
@@ -667,7 +670,7 @@ public class Parse {
          
          switch (operacao) {
             case 1:
-               c.codigo.add("AND ax , bx ; Operacao and");
+               c.codigo.add("and ax , bx ; Operacao and");
                alocaLogicoTemp();
                break;
             case 2:
