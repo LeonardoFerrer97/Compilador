@@ -110,7 +110,6 @@ public class TabelaSimbolos {
 	}
    	public Simbolo inserirConstante(String lexema, String tipo, int tamanho){
 		lexema = lexema.toLowerCase();
-      System.out.println(tamanho);
 		Simbolo simbolo = new Simbolo(CONSTANTES, lexema, tipo, tamanho);
 		tabela.put(lexema, simbolo);
 		return tabela.get(lexema);

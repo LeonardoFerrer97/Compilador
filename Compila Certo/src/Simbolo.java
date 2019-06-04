@@ -69,6 +69,12 @@ public class Simbolo {
    public void setClasse(String classe) {
       this.classe = classe;
    }
+      public int getEndereco(){
+      return this.endereco;
+   }
+      public void setEndereco(int endereco){
+      this.endereco = endereco;
+   }
 
 	
 }

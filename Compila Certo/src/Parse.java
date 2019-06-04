@@ -2,7 +2,16 @@ import java.io.BufferedReader;
 
 public class Parse {
    AnalisadorLexico lexico;
-
+   
+   CodigoGerado c;
+   
+   int memoria_global = 0;
+   int endereco_temporario = 0;
+   int endereco_Exp =0;
+   int endereco_ExpS = 0;
+   int endereco_T=0;
+   int endereco_F=0;
+   
    TabelaSimbolos tabela;
 
    Simbolo s;
@@ -15,6 +24,8 @@ public class Parse {
          this.arquivo = arquivo; // arquivo com o programa lido
          lexico = new AnalisadorLexico(); // declara o Analisador lexico (automato)
          tabela = new TabelaSimbolos();
+         c = new CodigoGerado();
+         
          s = lexico.analisar(lexico.dev, arquivo);// Executa a primeira analise do lexico, lendo o primeiro token do
       												// arquivo
       
@@ -36,7 +47,7 @@ public class Parse {
                   System.err.println(lexico.linha + ":Fim de Arquivo não esperado."); 
                   System.exit(0);
                } else {
-                  System.err.println(lexico.linha + ":Token não esperado: " + s.getLexema()); 
+                  System.err.println(lexico.linha + ":Token não esperado: " + s.getLexema()+ token); 
                   System.exit(0);
                }
             }
@@ -48,7 +59,7 @@ public class Parse {
 
    String tipo() throws Exception {
       if (s.getToken() == tabela.INTEGER) {
-         casaToken(tabela.INTEGER);
+         casaToken(tabela.INTEGER); 
          s.setTipo("inteiro");
          return "inteiro";
       }  else {
@@ -67,15 +78,23 @@ public class Parse {
       	
          if (s != null) {
             casaToken(tabela.VAR);
-         
+            c.codigo.add("sseg SEGMENT STACK ;início seg. pilha ");
+            c.codigo.add("byte 4000h DUP(?)  ;dimensiona pilha");
+            c.codigo.add("sseg ENDS ;fim seg. pilha");
+            c.codigo.add("dseg SEGMENT PUBLIC ;início seg. dados");
+            c.codigo.add("byte 4000h DUP(?) ;temporários");
+            memoria_global = 16384;
             while (s.getToken() == tabela.INTEGER || s.getToken() == tabela.CHAR || s.getToken() == tabela.CONST) {
                D();
             }
+            c.codigo.add("dseg ends  ; fim seg.dados");
+            
             while ((s.getToken() == tabela.ID || s.getToken() == tabela.IF || s.getToken() == tabela.FOR
             		|| s.getToken() == tabela.READLN || s.getToken() == tabela.WRITE || s.getToken() == tabela.WRITELN
             		|| s.getToken() == tabela.PONTOVIRGULA) && !lexico.EOF) {
                C();
             }
+            c.criarArquivo();
             if(!lexico.EOF){
                System.err.println(lexico.linha + ":Token não esperado: " + s.getLexema());
                System.exit(0);
@@ -87,6 +106,7 @@ public class Parse {
    }
 
    void D() throws Exception {
+      int endereco = 0;
       if (s.getToken() == tabela.INTEGER || s.getToken() == tabela.CHAR) {
          String Tipo_tipo = tipo();
          if(!s.getClasse().equals("")){
@@ -114,22 +134,43 @@ public class Parse {
                System.exit(0);
             }
             casaToken(tabela.FCCOLC);
+            
+            
+            // GERAR Codigo Array
+            
+            c.codigo.add("byte " + aux.getTamanho()+ " DUP(?) ; vetor " + aux.getLexema() + " em " + memoria_global);
+            alocaVetor(aux.getTamanho());
+            
+            aux.setEndereco(memoria_global);
+            
          } else if (s.getToken() == tabela.IGUAL) {
          
             casaToken(tabela.IGUAL);
             if (s.getToken() == tabela.MENOS) {
                casaToken(tabela.MENOS);
-            } else if(s.getToken() == tabela.MAIS) {
-               casaToken(tabela.MAIS);
             }
-            String exp_tipo = exp();
             
-            
-            if(Tipo_tipo != exp_tipo)  {
+            if(Tipo_tipo != s.getTipo())  {
                System.out.println(lexico.linha+": Tipos incompativeis2");
                System.exit(0);
                
             }
+             
+            
+            switch (s.getTipo()) {
+               case "inteiro":
+                  c.codigo.add("sword " + s.getLexema() + " ; inteiro " + s.getLexema());
+                  endereco =alocaInteiro();
+                  break;
+               case "caractere":
+                  c.codigo.add("byte " + s.getLexema() + " ; caractere " + s.getLexema());
+                  endereco = alocaChar();
+                  break;
+            }
+            casaToken(tabela.CONSTANTES);
+            aux.setEndereco(endereco);
+            
+              
             
             
          }
@@ -158,21 +199,40 @@ public class Parse {
                   System.exit(0);
                }
                casaToken(tabela.FCCOLC);
+               
+               // Geracao codigo array
+               
+               c.codigo.add("byte " + aux.getTamanho()+ " DUP(?) ; vetor " + aux.getLexema() + " em " + memoria_global);
+               endereco = alocaVetor(aux.getTamanho());
+            
+               aux.setEndereco(endereco);
+            
             } else if (s.getToken() == tabela.IGUAL) {
                casaToken(tabela.IGUAL);
                if (s.getToken() == tabela.MENOS) {
                   casaToken(tabela.MENOS);
-               } else if(s.getToken() == tabela.MAIS) {
-                  casaToken(tabela.MAIS);
                }
-               
                if(Tipo_tipo != s.getTipo())  {
-                  System.out.println(lexico.linha+": Tipos incompativeis");
+                  System.out.println(lexico.linha+": Tipos incompativeis2");
                   System.exit(0);
                
                }
-               
+             
+            
+               switch (s.getTipo()) {
+                  case "inteiro":
+                     c.codigo.add("sword " + s.getLexema() + " ; inteiro " + s.getLexema());
+                     endereco = alocaInteiro();
+                     break;
+                  case "caractere":
+                     c.codigo.add("byte " + s.getLexema() + " ; caractere " + s.getLexema());
+                     endereco = alocaChar();
+                     break;
+               }
                casaToken(tabela.CONSTANTES);
+               aux.setEndereco(endereco);
+               
+               
             }
          }
       } else if (s.getToken() == tabela.CONST) {
@@ -197,9 +257,28 @@ public class Parse {
                
          aux.setTipo(s.getTipo());
          aux.setTamanho(s.getTamanho());
+         if(aux.getTamanho() > 0 && s.getTipo().equals("caractere")) {
+            c.codigo.add("byte " + s.getLexema() + " ; caractere " + s.getLexema());
+            endereco = alocaString(s.getTamanho() -1 );
+            c.codigo.add("byte " + s.getLexema().substring(0, s.getTamanho()-1) + "$" + s.getLexema().charAt(s.getTamanho() - 1));
+         
+         } else {
+         
+            switch (s.getTipo()) {
+               case "inteiro":
+                  c.codigo.add("sword " + s.getLexema() + " ; inteiro " + s.getLexema());
+                  endereco = alocaInteiro();
+                  break;
+               case "caractere":
+                  c.codigo.add("byte " + s.getLexema() + " ; caractere " + s.getLexema());
+                  endereco = alocaChar();
+                  break;
+            }
+         }
       
          
          casaToken(tabela.CONSTANTES);
+         aux.setEndereco(endereco);
       }
       casaToken(tabela.PONTOVIRGULA);
    }
@@ -293,7 +372,11 @@ public class Parse {
          casaToken(tabela.DO);
          if (s.getToken() == tabela.ABCHAV) {
             casaToken(tabela.ABCHAV);
-            C();
+            while(s.getToken() != tabela.FCCHAV){
+               C();
+            
+            }
+            
             casaToken(tabela.FCCHAV);
          }
       
@@ -454,8 +537,6 @@ public class Parse {
       if (s.getToken() == tabela.MENOS || s.getToken() == tabela.MAIS) {
          if (s.getToken() == tabela.MENOS) {
             casaToken(tabela.MENOS);
-         } else if (s.getToken() == tabela.MAIS) {
-            casaToken(tabela.MAIS);
          }
       }
       Simbolo aux = s;
@@ -463,14 +544,14 @@ public class Parse {
       int operacao = 0;
       while (s.getToken() == tabela.MENOS || s.getToken() == tabela.MAIS || s.getToken() == tabela.OR) {
          if (s.getToken() == tabela.MENOS) {
-            if (!ExpS_tipo.equals("inteiro")) {
+            if (ehString(aux)) {
                System.out.println(lexico.linha+": Tipos incompativeis.7");
                System.exit(0);
             }
             operacao =2;
             casaToken(tabela.MENOS);
          } else if (s.getToken() == tabela.MAIS) {
-            if (!ExpS_tipo.equals("inteiro")) {
+            if (ehString(aux)) {
                System.out.println(lexico.linha+": Tipos incompativeis.8");
                System.exit(0);
             }
@@ -490,7 +571,7 @@ public class Parse {
          if (operacao == 1 && !ExpS_tipo2.equals("logico") && !aux.getLexema().equals("0") && !aux.getLexema().equals("1")) {
             System.out.println(lexico.linha+": Tipos incompativeis.11"+ExpS_tipo2);
             System.exit(0);
-         } else if(operacao > 1 && !ExpS_tipo2.equals("inteiro")){
+         } else if(operacao > 1 && ehString(aux)){
             System.out.println(lexico.linha+": Tipos incompativeis.12");
             System.exit(0);
          }
@@ -504,17 +585,17 @@ public class Parse {
       Simbolo aux = s;
       T_Tipo = F();
       int operacao = 0;
-      while (s.getToken() == tabela.MULT || s.getToken() == tabela.DIV || s.getToken() == tabela.AND) {
+      while (s.getToken() == tabela.MULT || s.getToken() == tabela.DIV || s.getToken() == tabela.MOD || s.getToken() == tabela.AND) {
       
          if (s.getToken() == tabela.MULT) {
-            if (!T_Tipo.equals("inteiro")) {
+            if (ehString(aux)) {
                System.out.println(lexico.linha+": Tipos incompativeis.13");
                System.exit(0);
             }
             casaToken(tabela.MULT);
             operacao=2;
          } else if (s.getToken() == tabela.DIV) {
-            if (!T_Tipo.equals("inteiro")) {
+            if (ehString(aux)) {
                System.out.println(lexico.linha+": Tipos incompativeis.14");
                System.exit(0);
             }
@@ -528,13 +609,20 @@ public class Parse {
             casaToken(tabela.AND);
             operacao=1;
             T_Tipo = "logico";
+         }else if (s.getToken() == tabela.MOD) {
+            if(ehString(aux) || aux.getTamanho() > 0) {
+               System.out.println(lexico.linha+": Tipos incompativeis.5");
+               System.exit(0);
+            }
+            operacao=7;
+            casaToken(tabela.MOD);
          }
          Simbolo aux2 = s;
          T2_Tipo = F();
          if (operacao == 1 && !T2_Tipo.equals("logico") && !aux2.getLexema().equals("0") && !aux2.getLexema().equals("1")) {
             System.out.println(lexico.linha+": Tipos incompativeis.16");
             System.exit(0);
-         } else if(operacao > 1 && !T2_Tipo.equals("inteiro")){
+         } else if(operacao > 1 && ehString(aux2)){
             System.out.println(lexico.linha+": Tipos incompativeis.17");
             System.exit(0);
          }
@@ -550,6 +638,10 @@ public class Parse {
       if (s.getToken() == tabela.ABPAR) {
          casaToken(tabela.ABPAR);
          F_Tipo = exp();
+         // GERACAO DE CODIGO
+         
+         endereco_F = endereco_Exp;
+         
          
          casaToken(tabela.FCPAR);
       } else if (s.getToken() == tabela.NOT) {
@@ -563,12 +655,20 @@ public class Parse {
          if(!F_Tipo.equals("logico") && !ehLogico) {
             System.out.println(lexico.linha+": Tipos incompativeis.18");
             System.exit(0);
+            
+            
          } else {
             F_Tipo = "logico";
+            
+            endereco_F = endereco_temporario;
+            c.codigo.add("mov al,"+ "DS: ["+endereco_F+"]");
+            c.codigo.add("not al");
+            c.codigo.add("mov DS: ["+endereco_F+"] , al");
+            alocaLogicoTemp();
          }
          
       } else if (s.getToken() == tabela.ID) {
-      
+         endereco_F = s.getEndereco();
          if(s.getClasse().equals("")){
             System.err.println(lexico.linha + ": Identificador nao declarado["+s.getLexema()+"]");
             System.exit(0);
@@ -587,9 +687,33 @@ public class Parse {
             casaToken(tabela.FCCOLC);
          }
          
+                  
       } else {
          F_Tipo = s.getTipo();
+         if(ehString(s)){
+         
+            endereco_F = endereco_temporario;
+            c.codigo.add("mov al,"+ s.getLexema().substring(1, s.getTamanho()-1) + "$");
+            c.codigo.add("mov DS: ["+endereco_F+"] , al");
+            alocaStringTemp(s.getTamanho());
+            
+         } else {
+            endereco_F = endereco_temporario;
+            c.codigo.add("mov al, "+s.getLexema());
+            c.codigo.add("mov DS: ["+endereco_F+"] , al");
+            if(s.getTipo().equals("caractere")) {
+               alocaCharTemp();
+            
+            }else {
+               alocaInteiroTemp();
+            }
+         }
+         // GERACAO DE CODIGO
+         
+         
          casaToken(tabela.CONSTANTES);
+         
+         
       }
       return F_Tipo;
    
@@ -604,4 +728,73 @@ public class Parse {
       }
       return ehString;
    }
+   
+   
+   
+   /*  METODOS GERAÇÂO DE CODIGO    */ 
+
+   public int alocaInteiro() {
+      int aux = memoria_global;
+      memoria_global +=2;
+      return aux;
+   }
+   public int alocaChar() {
+   
+      int aux = memoria_global;
+      memoria_global++;
+      return aux;
+   
+   }
+   public int alocaLogico() {
+   
+      int aux = memoria_global;
+      memoria_global++;
+      return aux;
+   
+   }
+   public int alocaVetor(int tam) {
+   
+      int aux = memoria_global;
+      memoria_global+=tam; 
+      return aux;
+   }
+   public int alocaString(int tam) {
+   
+      int aux = memoria_global;
+      memoria_global +=tam;
+      return aux;
+   }
+   public int alocaInteiroTemp() {
+      int aux = endereco_temporario;
+      endereco_temporario +=2;
+      return aux;
+   }
+   public int alocaCharTemp() {
+   
+      int aux = endereco_temporario;
+      endereco_temporario++;
+      return aux;
+   
+   }
+   public int alocaLogicoTemp() {
+   
+      int aux = endereco_temporario;
+      endereco_temporario++;
+      return aux;
+   
+   }
+   public int alocaVetorTemp(int tam) {
+   
+      int aux = endereco_temporario;
+      endereco_temporario+=tam; 
+      return aux;
+   }
+   public int alocaStringTemp(int tam) {
+   
+      int aux = endereco_temporario;
+      endereco_temporario +=tam;
+      return aux;
+   }
+
+   
 }

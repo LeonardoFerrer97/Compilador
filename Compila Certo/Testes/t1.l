@@ -1,55 +1,75 @@
 /* Exemplo de Programa na linguagem L */
 
-Var integer eita, n1[100], n = 50 + 5, n7 = 10, teste[45], peidola[24];
-integer MAXITER = 0, n2;
-integer nome[100];
-Char n4 = 'x';
-char nome2[2047], nome3[20];
-integer fed = 1000;
-Const oi = 'f';
-integer n9 = -9+n*3;
-char n3 = 0x00;
+Var char luigi [20];
+char tanguinha = 0x5F;
+integer salaminho [20];
+char a = 'A';
+integer n = 1, h, j = 4;
+char teste [20];
+Const b = 1;
+Const c = 3;
+Const d = -5;
+Const e = 'C';
 
-nome2 = "b";
-n = -9;
-n3 = nome3[0];
-n3 = nome3[5];
-n = nome[0];
-n3 = "teste";
-n3 = nome3[0];
+/*Programa Principal*/
+teste = "Tails e Sonic";
+for n = 1 to 10 step 2 do{
+	if(a <> 'D') then {
+		a = 'A' + 'B';
+	} else{
+		n = n + 1;
+		;
+	}
+}
 
-nome2 = n4;
-nome2 = nome3;
-/* Programa Principal */
+if((n > 1) or (n < b)) then {
+	a = 'A' + 'B';
+}
 
-  write(nome2[9]);
-  write(nome2);
-  write(n);
-  write(n7);
-  write(nome2[9]);
-  write(n3);
-  readln(nome2);
-  readln(nome2);
-  readln(n);
-  readln(n7);
-  readln(nome2);
-  readln(n3);
-  readln(n9);
-  readln(MAXITER);
-  
-  
-  For n = 0 to MAXITER step n5 do {
-    writeln("Ola' ",nome2);
-nome2 = "c";
+if((n > 1) and (n >= b)) then {
+	a = 'A' + 'B';
+}
 
-  }
-  
-  if (n4 = nome2[0]) or (n4 = n3) or (n5 = n8) then{
-n4 = 'j';
-  nome2 = "n";
+if(n <= 1) then {
+	a = 'A' + 'B';
+}
 
-  }else if oi > n3 then{
-nome2 = "m";
-nome3 = "n";
+if(n >= 1) then {
+	a = 'A' + 'B';
+}
 
-  }
+for n = 1 to 10 do{
+	if(n = 12) then {
+		n = n % 2;
+	}
+}
+
+luigi[1] = 'M';
+luigi[2] = 0x41;
+luigi[3] = 0x43;
+luigi[4] = 0x4F;
+luigi[5] = 'N';
+luigi[6] = 'H';
+luigi[7] = 0x41;
+luigi[8] = '.';
+
+salaminho[1] = (+5);
+salaminho[2] = ((-4));
+salaminho[3] = (5)+(3);
+salaminho[4] = 4/2;
+salaminho[5] = (+4*(-2));
+salaminho[6] = -10;
+
+if(not(a = 'D')) then {
+	write(1);
+	write(salaminho);
+	write((+5));
+	writeln(1);
+	writeln(salaminho[1]);
+	writeln((+5));
+	readln(n);
+        readln(a);
+}
+
+for n = 1 to 10 do ;
+/*Erro esperado: nenhum error*/

@@ -28,7 +28,6 @@ public class Principal {
 			lerCaminho();
 
 		}
-		sc.close();
 
 	}
 
