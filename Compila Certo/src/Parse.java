@@ -539,10 +539,7 @@ public class Parse {
          
          if (s.getToken() == tabela.MENOS) {
             casaToken(tabela.MENOS);
-<<<<<<< HEAD
             menos= true;
-=======
->>>>>>> 013001cd5a3e0c1241d222a19e7b9cc661edfe92
          }
       }
       
@@ -648,11 +645,8 @@ public class Parse {
                System.out.println(lexico.linha+": Tipos incompativeis.5");
                System.exit(0);
             }
-<<<<<<< HEAD
             operacao=4;
-=======
-            operacao=7;
->>>>>>> 013001cd5a3e0c1241d222a19e7b9cc661edfe92
+            
             casaToken(tabela.MOD);
          }
          Simbolo aux2 = s;
