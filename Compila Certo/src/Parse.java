@@ -534,13 +534,30 @@ public class Parse {
    String expS() throws Exception {
       String ExpS_tipo = "";
       String ExpS_tipo2 = "";
+      boolean menos = false;
       if (s.getToken() == tabela.MENOS || s.getToken() == tabela.MAIS) {
+         
          if (s.getToken() == tabela.MENOS) {
             casaToken(tabela.MENOS);
+<<<<<<< HEAD
+            menos= true;
+=======
+>>>>>>> 013001cd5a3e0c1241d222a19e7b9cc661edfe92
          }
       }
+      
+
       Simbolo aux = s;
       ExpS_tipo= T();
+      
+         if(menos) {
+         endereco_ExpS = endereco_temporario;
+         c.codigo.add("mov ax, DS: ["+endereco_T+"]" );
+         c.codigo.add("not ax");
+         c.codigo.add("not DS["+endereco_ExpS+"], ax");
+      }else {
+      endereco_ExpS = endereco_T;
+      }
       int operacao = 0;
       while (s.getToken() == tabela.MENOS || s.getToken() == tabela.MAIS || s.getToken() == tabela.OR) {
          if (s.getToken() == tabela.MENOS) {
@@ -575,6 +592,19 @@ public class Parse {
             System.out.println(lexico.linha+": Tipos incompativeis.12");
             System.exit(0);
          }
+         
+         switch (operacao) {
+            case 1: 
+               break;
+            case 2: 
+               
+               break;
+            case 3: 
+              
+               break;
+         }
+         
+      
       }
       return ExpS_tipo;
    }
@@ -584,6 +614,10 @@ public class Parse {
       String T2_Tipo = "";
       Simbolo aux = s;
       T_Tipo = F();
+      
+      endereco_T = endereco_F;
+      
+      
       int operacao = 0;
       while (s.getToken() == tabela.MULT || s.getToken() == tabela.DIV || s.getToken() == tabela.MOD || s.getToken() == tabela.AND) {
       
@@ -614,11 +648,17 @@ public class Parse {
                System.out.println(lexico.linha+": Tipos incompativeis.5");
                System.exit(0);
             }
+<<<<<<< HEAD
+            operacao=4;
+=======
             operacao=7;
+>>>>>>> 013001cd5a3e0c1241d222a19e7b9cc661edfe92
             casaToken(tabela.MOD);
          }
          Simbolo aux2 = s;
+         
          T2_Tipo = F();
+         
          if (operacao == 1 && !T2_Tipo.equals("logico") && !aux2.getLexema().equals("0") && !aux2.getLexema().equals("1")) {
             System.out.println(lexico.linha+": Tipos incompativeis.16");
             System.exit(0);
@@ -626,6 +666,35 @@ public class Parse {
             System.out.println(lexico.linha+": Tipos incompativeis.17");
             System.exit(0);
          }
+         
+         c.codigo.add("mov ax, DS: ["+ endereco_T+"]");
+         
+         c.codigo.add("mov bx, DS: ["+ endereco_F+"]");
+         
+         switch (operacao) {
+            case 1:
+               c.codigo.add("AND ax , bx ; Operacao and");
+               alocaLogicoTemp();
+               break;
+            case 2:
+               c.codigo.add("imul bx");
+               alocaInteiroTemp();
+               break;
+            
+            case 3:
+               c.codigo.add("idiv bx ; divisao");
+               alocaInteiroTemp();
+               break;
+            
+            case 4:
+               c.codigo.add("idiv bx ; mod");
+               c.codigo.add("mov ax,dx ; mod");
+               alocaInteiroTemp();
+               break;
+         }
+         c.codigo.add("mov DS: ["+endereco_T+"] , ax");
+         
+         
             
       }
       

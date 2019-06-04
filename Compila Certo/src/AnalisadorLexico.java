@@ -41,7 +41,7 @@ public class AnalisadorLexico {
                      devolver = false;
                      dev = true;
                   }
-                  else if (((c=='+'  || c == '-')&& dev) ||  c == '(' || c == ')' || c == ',' ||c == ';' ||c == '{' || c == '}' ||c == '*' ||c == '[' ||c == ']' ||c == '%' ||c == '=') {
+                  else if (((c == '-')&& dev) || c=='+' ||  c == '(' || c == ')' || c == ',' ||c == ';' ||c == '{' || c == '}' ||c == '*' ||c == '[' ||c == ']' ||c == '%' ||c == '=') {
                      estadoInicial = estadoFinal;
                      lexema += c;
                      dev = false;
@@ -59,7 +59,7 @@ public class AnalisadorLexico {
                      }
                   
                   }
-                  else if (c == '+' || c == '-') {
+                  else if (c == '-') {
                      estadoInicial = 7;
                      lexema += c;
                      dev = false;
@@ -357,8 +357,8 @@ public class AnalisadorLexico {
             else if(ehLetra(lexema.charAt(0)) || lexema.charAt(0) == '_'|| lexema.charAt(0) == '.'){
                simbolo = simbolos.inserirID(lexema);
             } 				
-            else if(ehDigito(lexema.charAt(0)) || lexema.charAt(0) == '-'|| lexema.charAt(0) == '+' || lexema.charAt(0) == '"' || (int)lexema.charAt(0) == 39){
-               if(ehDigito(lexema.charAt(0)) || lexema.charAt(0) == '-'|| lexema.charAt(0) == '+' ){
+            else if(ehDigito(lexema.charAt(0)) || lexema.charAt(0) == '-' || lexema.charAt(0) == '"' || (int)lexema.charAt(0) == 39){
+               if(ehDigito(lexema.charAt(0)) || lexema.charAt(0) == '-' ){
                   if(lexema.charAt(0) == '0'){
                      if(lexema.length() > 1){
                         if(lexema.charAt(1) == 'x'){
@@ -392,7 +392,7 @@ public class AnalisadorLexico {
                         int index = 0;
                         for(char l : lexema.toCharArray()){
                            if(index == 0) {
-                              if (!ehDigito(l) && l != '+' && l != '-') {
+                              if (!ehDigito(l) &&  l != '-') {
                                  System.err.println(linha + ":Caracter inválido.");
                                  System.exit(0);
                               }
