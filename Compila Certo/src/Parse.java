@@ -2,7 +2,7 @@ import java.io.BufferedReader;
 
 public class Parse {
    AnalisadorLexico lexico;
-   
+   Rotulo r;
    CodigoGerado c;
    
    int memoria_global = 0;
@@ -24,6 +24,7 @@ public class Parse {
          this.arquivo = arquivo; // arquivo com o programa lido
          lexico = new AnalisadorLexico(); // declara o Analisador lexico (automato)
          tabela = new TabelaSimbolos();
+         r= new Rotulo();
          c = new CodigoGerado();
          
          s = lexico.analisar(lexico.dev, arquivo);// Executa a primeira analise do lexico, lendo o primeiro token do
@@ -88,12 +89,19 @@ public class Parse {
                D();
             }
             c.codigo.add("dseg ends  ; fim seg.dados");
-            
+            c.codigo.add("cseg SEGMENT PUBLIC");
+            c.codigo.add("ASSUME CS:cseg, DS:dseg");
+            c.codigo.add("strt:");
             while ((s.getToken() == tabela.ID || s.getToken() == tabela.IF || s.getToken() == tabela.FOR
             		|| s.getToken() == tabela.READLN || s.getToken() == tabela.WRITE || s.getToken() == tabela.WRITELN
             		|| s.getToken() == tabela.PONTOVIRGULA) && !lexico.EOF) {
                C();
             }
+            
+            c.codigo.add("Mov AH, 4Ch");
+            c.codigo.add("int 21h");
+            c.codigo.add("cseg ENDS");
+            c.codigo.add("END strt");
             c.criarArquivo();
             if(!lexico.EOF){
                System.err.println(lexico.linha + ":Token não esperado: " + s.getLexema());
@@ -136,7 +144,7 @@ public class Parse {
             casaToken(tabela.FCCOLC);
             
             
-            // GERAR Codigo Array
+            // Codigo Array
             
             c.codigo.add("byte " + aux.getTamanho()+ " DUP(?) ; vetor " + aux.getLexema() + " em " + memoria_global);
             alocaVetor(aux.getTamanho());
@@ -160,7 +168,7 @@ public class Parse {
             switch (s.getTipo()) {
                case "inteiro":
                   c.codigo.add("sword " + s.getLexema() + " ; inteiro " + s.getLexema());
-                  endereco =alocaInteiro();
+                  endereco = alocaInteiro();
                   break;
                case "caractere":
                   c.codigo.add("byte " + s.getLexema() + " ; caractere " + s.getLexema());
@@ -424,7 +432,7 @@ public class Parse {
             System.exit(0);
          }
          if(!s.getClasse().equals("classe-var"))  {
-            System.out.println(lexico.linha+": Identificador nao declarado  ["+s.getLexema()+"]");
+            System.out.println(lexico.linha+": Classe de identificador incompativel  ["+s.getLexema()+"]");
             System.exit(0);
          }
          casaToken(tabela.ID);
@@ -462,6 +470,8 @@ public class Parse {
       String Exp_Tipo2 = "";
       Simbolo aux= s;
       Exp_Tipo = expS();
+      endereco_Exp = endereco_ExpS;
+      
       int operacao=0;
       if (s.getToken() == tabela.MAIOR || s.getToken() == tabela.MENOR || s.getToken() == tabela.MAIORIGUAL
       		|| s.getToken() == tabela.MENORIGUAL || s.getToken() == tabela.IGUAL
@@ -518,13 +528,50 @@ public class Parse {
             !aux.getLexema().equals("0") &&
             !aux.getLexema().equals("1") &&
             !aux2.getLexema().equals("0") &&
-            !aux2.getLexema().equals("1"))
+            !aux2.getLexema().equals("1")) 
          {
             System.out.println(lexico.linha+": Tipos incompativeis.6");
             System.exit(0);
          } else {
             Exp_Tipo = "logico";
          }
+         
+         c.codigo.add("mov ax, DS: ["+endereco_Exp+"]");
+         c.codigo.add("mov bx, DS: ["+endereco_ExpS+"]");
+         c.codigo.add("cmp ax,bx");
+         String RotuloTrue = r.novoRotulo();  
+         switch(operacao) {
+            case 1:
+               c.codigo.add("je "+RotuloTrue);
+               break;
+            case 2:
+               c.codigo.add("jg " +RotuloTrue);
+               break;
+            case 3:
+               c.codigo.add("jl "+RotuloTrue);
+               break;
+            case 4:
+               c.codigo.add("jge "+RotuloTrue);
+               break;
+            case 5:
+               c.codigo.add("jle "+RotuloTrue);
+               break;
+            case 6:
+               c.codigo.add("jne "+RotuloTrue);
+               break;
+         
+         }
+         
+         String RotuloFalso = r.novoRotulo();
+         c.codigo.add("mov AL, 0");
+         
+         c.codigo.add("jmp " + RotuloFalso);
+         
+         c.codigo.add(RotuloTrue+":");
+         c.codigo.add("mov AL, 1");
+         c.codigo.add(RotuloFalso+":");
+         
+         c.codigo.add("mov DS: ["+endereco_Exp+"],AL");
          
       }
       return Exp_Tipo;
@@ -543,17 +590,17 @@ public class Parse {
          }
       }
       
-
+   
       Simbolo aux = s;
       ExpS_tipo= T();
       
-         if(menos) {
+      if(menos) {
          endereco_ExpS = endereco_temporario;
          c.codigo.add("mov ax, DS: ["+endereco_T+"]" );
          c.codigo.add("not ax");
-         c.codigo.add("not DS["+endereco_ExpS+"], ax");
+         c.codigo.add("mov DS["+endereco_ExpS+"], ax");
       }else {
-      endereco_ExpS = endereco_T;
+         endereco_ExpS = endereco_T;
       }
       int operacao = 0;
       while (s.getToken() == tabela.MENOS || s.getToken() == tabela.MAIS || s.getToken() == tabela.OR) {
@@ -590,19 +637,19 @@ public class Parse {
             System.exit(0);
          }
          c.codigo.add("mov ax, DS: ["+endereco_ExpS+"] ");
-         c.codigo.add("mov bx, DS: ["+endereco_T"] ");
+         c.codigo.add("mov bx, DS: ["+endereco_T+"] ");
          switch (operacao) {
             case 1:
-                c.codigo.add("or ax, bx");
+               c.codigo.add("or ax, bx");
                break;
             case 2: 
                c.codigo.add("sub ax,bx");
                break;
             case 3: 
-              c.codigo.add("add ax,bx");
+               c.codigo.add("add ax,bx");
                break;
          }
-         c.codigo.add("mov DS: ["+ endereco_ExpS+"]",ax);
+         c.codigo.add("mov DS: ["+endereco_ExpS+"],ax");
          
       
       }

@@ -11,7 +11,7 @@ public class CodigoGerado {
 
 	public CodigoGerado() throws Exception{
 		codigo = new ArrayList<>();
-		arquivo = new BufferedWriter(new FileWriter("..\\Testes\\saida.asm"));
+		arquivo = new BufferedWriter(new FileWriter("C:\\teste\\saida.asm"));
 	}
    
 	public void criarArquivo() throws IOException{

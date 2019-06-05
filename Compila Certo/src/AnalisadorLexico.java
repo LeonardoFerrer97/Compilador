@@ -351,10 +351,7 @@ public class AnalisadorLexico {
          if(simbolos.tabela.get(lexema.toLowerCase()) != null){
             simbolo = simbolos.tabela.get(lexema.toLowerCase());
          } else {
-            if (lexema.toLowerCase().equals("true") || lexema.toLowerCase().equals("false") ) {
-               simbolo = simbolos.inserirConstante(lexema, "tipo_logico");
-            }
-            else if(ehLetra(lexema.charAt(0)) || lexema.charAt(0) == '_'|| lexema.charAt(0) == '.'){
+            if(ehLetra(lexema.charAt(0)) || lexema.charAt(0) == '_'|| lexema.charAt(0) == '.'){
                simbolo = simbolos.inserirID(lexema);
             } 				
             else if(ehDigito(lexema.charAt(0)) || lexema.charAt(0) == '-' || lexema.charAt(0) == '"' || (int)lexema.charAt(0) == 39){
